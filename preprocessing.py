@@ -1,7 +1,6 @@
 import os
 from collections import defaultdict
 
-import ollama
 import pandas as pd
 from nuscenes.nuscenes import NuScenes
 from tqdm import tqdm
@@ -112,7 +111,10 @@ def preprocess_nuscenes(nuscenes_path):
         benign_prompt(car_benign_prompt, images, path=os.path.join(video_folder, 'bq.txt'))
 
 
-def preprocess_wayve(wayve_path):
+def preprocess_wayve(wayve_path, model=None):
+    if model is None:
+        model = llm_model
+    client = get_llm_client()
     # Loading questions
     df = pd.read_parquet(os.path.join(wayve_path, 'train.parquet'))
     # Generating redteam queries
@@ -124,8 +126,12 @@ def preprocess_wayve(wayve_path):
         Here is your query: "{q}".
         Just give me the redteam query without any context and introduction.
         """
-        response = ollama.chat(model="llama3.2", messages=[{"role": "user", "content": prompt}])
-        response_content = response["message"]["content"].strip("\"'")
+        response = client.chat.completions.create(
+            model=model,
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=200
+        )
+        response_content = response.choices[0].message.content.strip("\"'")
 
         response_lines = response_content.split('\n')
         if len(response_lines) > 2:

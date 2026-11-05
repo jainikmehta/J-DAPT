@@ -1,0 +1,25 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*/__pycache__/
+*.py[cod]
+*$py.class
+
+# Large Datasets & Archives (keep documentation)
+datasets/*
+!datasets/*/
+datasets/*/*
+!datasets/*/README.md
+
+# Trained model checkpoints (large binaries)
+models/*.pth
+
+# Logs and runtime outputs
+*.log
+results/*.csv
+results/*.json
+
+# OS and Editor artifacts
+.DS_Store
+._*
+.vscode/
+.idea/

@@ -156,9 +156,9 @@ if __name__ == '__main__':
     parser.add_argument(
         "--attack-model",
         # default = "gpt-4.1-mini",
-        default = "gpt-4o-mini",
+        default = "qwen3-vl-32b",
         help = "Name of attacking model.",
-        choices=["gpt-4.1-mini", "vicuna", "llama-2", "gpt-3.5-turbo", "gpt-4", "gpt-4o", "gpt-4o-mini"]
+        choices=["gpt-4.1-mini", "vicuna", "llama-2", "gpt-3.5-turbo", "gpt-4", "gpt-4o", "gpt-4o-mini", "qwen3-vl-32b", "gemma-4-31b"]
     )
     parser.add_argument(
         "--attack-max-n-tokens",
@@ -179,7 +179,7 @@ if __name__ == '__main__':
         "--target-model",
         default = "dolphin",
         help = "Name of target model.",
-        choices=["vicuna", "llama-2", "gpt-3.5-turbo", "gpt-4", "claude-instant-1","claude-2", "palm-2", "dolphin", "gpt-4o", "gpt-4o-mini"]
+        choices=["vicuna", "llama-2", "gpt-3.5-turbo", "gpt-4", "claude-instant-1","claude-2", "palm-2", "dolphin", "gpt-4o", "gpt-4o-mini", "qwen3-vl-32b", "gemma-4-31b"]
     )
     parser.add_argument(
         "--target-max-n-tokens",
@@ -193,9 +193,9 @@ if __name__ == '__main__':
     parser.add_argument(
         "--judge-model",
         # default="gpt-4.1-mini",
-        default="gpt-4o-mini",
+        default="qwen3-vl-32b",
         help="Name of judge model.",
-        choices=["gpt-3.5-turbo", "gpt-4", "gpt-4.1-mini", "gpt-4o-mini"]
+        choices=["gpt-3.5-turbo", "gpt-4", "gpt-4.1-mini", "gpt-4o-mini", "qwen3-vl-32b", "gemma-4-31b"]
     )
     parser.add_argument(
         "--judge-max-n-tokens",

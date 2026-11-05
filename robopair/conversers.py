@@ -198,7 +198,7 @@ class TargetLM():
 def load_indiv_model(model_name, video_path, device=None):
     # TODO: use device
     model_path, template = get_model_path_and_template(model_name)
-    if model_name in ["gpt-3.5-turbo", "gpt-4", "gpt-4o", "gpt-4.1-mini", "gpt-4o-mini"]:
+    if model_name in ["gpt-3.5-turbo", "gpt-4", "gpt-4o", "gpt-4.1-mini", "gpt-4o-mini", "qwen3-vl-32b", "gemma-4-31b"] or "qwen" in model_name or "gemma" in model_name:
         lm = GPT(model_name)
     elif model_name == "dolphin":
         lm = DolphinModel(model_name, video_path)
@@ -272,6 +272,14 @@ def get_model_path_and_template(model_name):
         "dolphin":{
             "path":"dolphin",
             "template":"dolphin"
+        },
+        "qwen3-vl-32b":{
+            "path":"qwen3-vl-32b",
+            "template":"gpt-4"
+        },
+        "gemma-4-31b":{
+            "path":"gemma-4-31b",
+            "template":"gpt-4"
         }
     }
     path, template = full_model_dict[model_name]["path"], full_model_dict[model_name]["template"]

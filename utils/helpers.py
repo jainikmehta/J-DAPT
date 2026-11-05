@@ -1,18 +1,55 @@
+import base64
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from contextlib import contextmanager
-import cv2
 import numpy as np
 import os
 import random
 import time
 from tqdm import tqdm
 
-import ollama
+from openai import OpenAI
 from PIL import Image
 import torch
 import torch.nn as nn
 
 from .params import *
+
+
+def get_llm_client():
+    api_key = os.getenv("LLM_API_KEY") or os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        key_path = os.path.expanduser(llm_api_key_path)
+        if os.path.exists(key_path):
+            with open(key_path) as f:
+                api_key = f.read().strip()
+    return OpenAI(base_url=llm_base_url, api_key=api_key or "EMPTY")
+
+
+def encode_image_data_url(image_path):
+    ext = os.path.splitext(image_path)[1].lower().lstrip(".")
+    mime = "image/jpeg" if ext in ["jpg", "jpeg"] else f"image/{ext}" if ext in ["png", "webp"] else "image/jpeg"
+    with open(image_path, "rb") as f:
+        b64 = base64.b64encode(f.read()).decode("utf-8")
+    return f"data:{mime};base64,{b64}"
+
+
+def call_vlm_chat(prompt, images, model=None):
+    if model is None:
+        model = vlm_model
+    client = get_llm_client()
+    content = []
+    for img_path in images:
+        content.append({
+            "type": "image_url",
+            "image_url": {"url": encode_image_data_url(img_path)}
+        })
+    content.append({"type": "text", "text": prompt})
+    response = client.chat.completions.create(
+        model=model,
+        messages=[{"role": "user", "content": content}],
+        max_tokens=500
+    )
+    return response.choices[0].message.content
 
 
 def setSeed(seed=seed):
@@ -26,6 +63,7 @@ def setSeed(seed=seed):
     torch.backends.cudnn.benchmark = True
 
 def imgs2mp4(images, path, fps=12):
+    import cv2
     if not os.path.exists(path):
         frame = cv2.imread(images[0])
         height, width, _ = frame.shape
@@ -38,6 +76,7 @@ def imgs2mp4(images, path, fps=12):
 
 
 def extract_frame(video_path, frame_index=0):
+    import cv2
     cap = cv2.VideoCapture(video_path)
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
@@ -54,14 +93,8 @@ def extract_frame(video_path, frame_index=0):
     return Image.fromarray(frame_rgb)
 
 
-def goal_target_prompt(prompt, images, path):
-    messages = [{"role": "user", "content": prompt, "images": images}]
-    response = ollama.chat(
-        model="gemma3:27b",
-        messages=messages
-    )
-    
-    content = response['message']['content']
+def goal_target_prompt(prompt, images, path, model=None):
+    content = call_vlm_chat(prompt, images, model=model)
     lines = content.splitlines()
     goal_line = next((line for line in lines if line.lower().startswith("goal:") or "goal:" in line.lower()), "")
     target_line = next((line for line in lines if line.lower().startswith("target:") or "target:" in line.lower()), "")
@@ -79,14 +112,8 @@ def goal_target_prompt(prompt, images, path):
         f.write(f"IMAGES: {', '.join(images)}\n")
 
 
-def benign_prompt(prompt, images, path):
-    messages = [{"role": "user", "content": prompt, "images": images}]
-    response = ollama.chat(
-        model="gemma3:27b",
-        messages=messages
-    )
-    
-    content = response['message']['content']
+def benign_prompt(prompt, images, path, model=None):
+    content = call_vlm_chat(prompt, images, model=model)
     lines = content.splitlines()
     query_line = next((line for line in lines if line.lower().startswith("query:")), "")
 

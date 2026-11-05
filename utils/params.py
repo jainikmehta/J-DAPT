@@ -1,3 +1,4 @@
+import os
 import torch
 
 
@@ -7,6 +8,12 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 # Seed for reproducibility
 seed = 151836
+
+# Server LLM / VLM Config (risl lab server)
+llm_base_url = os.getenv("LLM_BASE_URL", "http://localhost:8080/v1")
+llm_api_key_path = os.path.expanduser("~/.config/llm/api_key")
+vlm_model = os.getenv("VLM_MODEL", "gemma-4-31b")
+llm_model = os.getenv("LLM_MODEL", "qwen3-vl-32b")
 
 # Folders
 dataset_folder = "./datasets"

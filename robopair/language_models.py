@@ -13,8 +13,6 @@ from typing import Union
 from PIL import Image
 import mimetypes
 
-import cv2
-
 from dolphin.configs.lora_config import openflamingo_tuning_config
 from dolphin.mllm.src.factory import create_model_and_transforms
 from huggingface_hub import hf_hub_download
@@ -115,7 +113,13 @@ class GPT(LanguageModel):
         '''
 
         if os.getenv("OPENAI_API_KEY") is None:
-            raise ValueError("OPENAI_API_KEY is not set")
+            key_path = os.path.expanduser("~/.config/llm/api_key")
+            if os.path.exists(key_path):
+                os.environ["OPENAI_API_KEY"] = open(key_path).read().strip()
+                if "OPENAI_BASE_URL" not in os.environ:
+                    os.environ["OPENAI_BASE_URL"] = "http://localhost:8080/v1"
+            else:
+                raise ValueError("OPENAI_API_KEY is not set and ~/.config/llm/api_key not found")
 
         output = self.API_ERROR_OUTPUT
         for _ in range(self.API_MAX_RETRY):
@@ -220,6 +224,7 @@ class DolphinModel(LanguageModel):
         return model, image_processor, tokenizer
 
     def extract_frames(self, video_path, num_frames=16):
+        import cv2
         video = cv2.VideoCapture(video_path)
         total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
         frame_step = total_frames // num_frames
